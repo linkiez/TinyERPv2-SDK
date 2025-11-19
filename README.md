@@ -8,13 +8,33 @@ SDK TypeScript para integração com a API V2 do TinyERP.
 
 ## 📋 Índice
 
-- [Instalação](#instalação)
-- [Configuração](#configuração)
-- [Uso Básico](#uso-básico)
-- [Módulos Disponíveis](#módulos-disponíveis)
-- [Exemplos de Uso](#exemplos-de-uso)
-- [Tratamento de Erros](#tratamento-de-erros)
-- [Desenvolvimento](#desenvolvimento)
+- [TinyERP V2 SDK](#tinyerp-v2-sdk)
+  - [📋 Índice](#-índice)
+  - [🚀 Instalação](#-instalação)
+  - [⚙️ Configuração](#️-configuração)
+    - [Obtendo o Token de Acesso](#obtendo-o-token-de-acesso)
+    - [Limites de Requisições](#limites-de-requisições)
+  - [📖 Uso Básico](#-uso-básico)
+  - [🔌 Módulos Disponíveis](#-módulos-disponíveis)
+    - [Info](#info)
+    - [Contatos](#contatos)
+    - [Produtos](#produtos)
+    - [Vendedores](#vendedores)
+    - [CRM](#crm)
+    - [Pedidos](#pedidos)
+    - [Notas Fiscais](#notas-fiscais)
+    - [Contas](#contas)
+  - [💡 Exemplos de Uso](#-exemplos-de-uso)
+    - [Pesquisar e Atualizar Produto](#pesquisar-e-atualizar-produto)
+    - [Gerenciar Pedido](#gerenciar-pedido)
+  - [⚠️ Tratamento de Erros](#️-tratamento-de-erros)
+  - [🛠️ Desenvolvimento](#️-desenvolvimento)
+    - [Scripts Disponíveis](#scripts-disponíveis)
+    - [Estrutura do Projeto](#estrutura-do-projeto)
+  - [⚖️ Aviso Legal](#️-aviso-legal)
+  - [📝 Licença](#-licença)
+  - [🔗 Links Úteis](#-links-úteis)
+  - [👤 Autor](#-autor)
 
 ## 🚀 Instalação
 
@@ -34,6 +54,10 @@ yarn add @linkiez/tinyerpv2-sdk
 4. Após salvar, copie as chaves de acesso
 
 ⚠️ **Atenção**: As chaves são sensíveis e dão acesso total aos dados da conta.
+
+### Limites de Requisições
+
+As requisições podem ser limitadas se forem feitas muitas chamadas em um curto período de tempo. Consulte a documentação oficial do TinyERP para mais informações sobre os limites específicos do seu plano.
 
 ## 📖 Uso Básico
 
@@ -56,6 +80,8 @@ const produto = await TinyERPv2.produtoIncluir('seu_token_aqui', {
 ```
 
 ## 🔌 Módulos Disponíveis
+
+Este SDK implementa os principais serviços da API V2 do TinyERP.
 
 ### Info
 
@@ -193,52 +219,48 @@ yarn clean
 
 ### Estrutura do Projeto
 
-```
+```plaintext
 src/
-├── index.ts           # Exportação principal e objeto TinyERPv2
-├── types/             # Tipos TypeScript
-│   └── index.ts
-├── controllers/       # Controladores por módulo
+├── index.ts                    # Exportação principal e objeto TinyERPv2
+├── index.test.ts               # Testes unitários
+├── controllers/                # Controladores e lógica de negócio
 │   ├── index.ts
-│   └── webhooks/
-└── index.test.ts      # Testes
+│   └── webhooks/               # Controladores de webhooks
+│       ├── index.ts
+│       └── notificacaoVendaController.ts
+└── types/                      # Definições de tipos TypeScript
+    ├── BaseRequest.ts          # Tipo base para requisições
+    ├── BaseResponse.ts         # Tipo base para respostas
+    ├── CodigoErro.ts           # Códigos de erro da API
+    ├── StatusProcessamento.ts  # Status de processamento
+    ├── index.ts                # Exportação de todos os tipos
+    ├── contas-pagar/           # Tipos para contas a pagar
+    ├── contas-receber/         # Tipos para contas a receber
+    ├── contatos/               # Tipos para contatos
+    ├── crm/                    # Tipos para CRM
+    ├── info/                   # Tipos para informações
+    ├── notas-fiscais/          # Tipos para notas fiscais
+    ├── pedidos/                # Tipos para pedidos
+    ├── produtos/               # Tipos para produtos
+    ├── vendedores/             # Tipos para vendedores
+    └── webhooks/               # Tipos para webhooks
 ```
+
+## ⚖️ Aviso Legal
+
+Este projeto **não possui nenhuma associação, afiliação ou endosso oficial** da Olist ou TinyERP. É um projeto independente desenvolvido por [@linkiez](https://github.com/linkiez) para facilitar a integração com a API V2 do TinyERP.
+
+As marcas TinyERP e Olist são propriedades de seus respectivos donos.
 
 ## 📝 Licença
 
-MIT © linkiez
+MIT © [@linkiez](https://github.com/linkiez)
 
 ## 🔗 Links Úteis
 
-- [Documentação Oficial TinyERP API v2](https://tiny.com.br/ajuda/api)
 - [GitHub Repository](https://github.com/linkiez/TinyERPv2-SDK)
 - [Reportar Issues](https://github.com/linkiez/TinyERPv2-SDK/issues)
 
-## Instalação
+## 👤 Autor
 
-```bash
-yarn install
-```
-
-## Desenvolvimento
-
-```bash
-# Executar em modo dev
-yarn dev
-
-# Build
-yarn build
-
-# Testes
-yarn test
-yarn test:watch
-yarn test:coverage
-```
-
-## Estrutura
-
-```
-src/
-├── index.ts          # Entry point
-└── index.test.ts     # Tests
-```
+**[@linkiez](https://github.com/linkiez)** - Desenvolvedor e mantenedor do projeto
