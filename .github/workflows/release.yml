@@ -29,21 +29,20 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'yarn'
 
       - name: Enable Corepack
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: corepack yarn install --immutable
 
       - name: Build
-        run: yarn build
+        run: corepack yarn build
 
       - name: Run tests
-        run: yarn test --passWithNoTests
+        run: corepack yarn test --passWithNoTests
 
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn semantic-release
+        run: corepack yarn semantic-release
