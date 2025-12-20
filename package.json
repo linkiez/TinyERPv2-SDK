@@ -38,7 +38,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/linkiez/TinyERPv2-SDK.git"
+    "url": "git+https://github.com/linkiez/TinyERPv2-SDK.git"
   },
   "homepage": "https://github.com/linkiez/TinyERPv2-SDK#readme",
   "bugs": {
