@@ -1,6 +1,6 @@
 {
   "name": "@linkiez/tinyerpv2-sdk",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "SDK for TinyERP v2 API",
   "type": "module",
   "main": "./dist/index.js",
