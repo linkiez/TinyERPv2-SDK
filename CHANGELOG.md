@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.0.5...v1.1.0) (2026-01-13)
+
+
+### Features
+
+* adicionar suporte completo para ESM com extensões .js nos imports ([13a31e2](https://github.com/linkiez/TinyERPv2-SDK/commit/13a31e2c8308c0f8d9572c0a8615d7e9e67750e5))
+
 ## [1.0.5](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.0.4...v1.0.5) (2025-12-20)
 
 ### Bug Fixes
