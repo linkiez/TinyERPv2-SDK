@@ -44,6 +44,18 @@ npm install @linkiez/tinyerpv2-sdk
 yarn add @linkiez/tinyerpv2-sdk
 ```
 
+### Compatibilidade ESM
+
+Este pacote é 100% compatível com **ECMAScript Modules (ESM)**. Certifique-se de que seu `package.json` tenha:
+
+```json
+{
+  "type": "module"
+}
+```
+
+Todos os imports do pacote já incluem a extensão `.js` obrigatória para ESM. Veja [ESM_SOLUTION.md](ESM_SOLUTION.md) para detalhes sobre como implementamos esta compatibilidade.
+
 ## ⚙️ Configuração
 
 ### Obtendo o Token de Acesso

@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "build": "tsc && node esbuild.config.js",
+    "build": "tsc && node scripts/add-js-extensions.js && node esbuild.config.js",
     "dev": "ts-node --esm src/index.ts",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
