@@ -138,7 +138,13 @@ export const TinyERPv2 = {
   ): Promise<ContatoPesquisarResponse> {
     const params = new URLSearchParams();
     if (request.pesquisa) params.append('pesquisa', request.pesquisa);
+    if (request.cpf_cnpj) params.append('cpf_cnpj', request.cpf_cnpj);
+    if (request.idVendedor) params.append('idVendedor', request.idVendedor.toString());
+    if (request.nomeVendedor) params.append('nomeVendedor', request.nomeVendedor);
+    if (request.situacao) params.append('situacao', request.situacao);
     if (request.pagina) params.append('pagina', request.pagina.toString());
+    if (request.dataCriacao) params.append('dataCriacao', request.dataCriacao);
+    if (request.dataMinimaAtualizacao) params.append('dataMinimaAtualizacao', request.dataMinimaAtualizacao);
 
     return this.postData<ContatoPesquisarResponse>(
       `https://api.tiny.com.br/api2/contatos.pesquisa.php?token=${token}&formato=JSON`,
