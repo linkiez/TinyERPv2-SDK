@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.2.0...v1.3.0) (2026-01-15)
+
+
+### Features
+
+* enhance ContatoPesquisarRequest with additional query parameters for improved search functionality ([2aed22e](https://github.com/linkiez/TinyERPv2-SDK/commit/2aed22e9ecbed4605667c6d29b8030b5b9c24765))
+
 # [1.2.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.1.0...v1.2.0) (2026-01-15)
 
 
