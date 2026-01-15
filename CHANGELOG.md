@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.1.0...v1.2.0) (2026-01-15)
+
+
+### Features
+
+* redefine ContatoPesquisarRequest interface with detailed fields for contact search ([7b88c28](https://github.com/linkiez/TinyERPv2-SDK/commit/7b88c2880e3e9893753506bdfb4b757fe8fa667e))
+
 # [1.1.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.0.5...v1.1.0) (2026-01-13)
 
 
