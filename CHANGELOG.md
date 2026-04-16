@@ -1,3 +1,11 @@
+## [1.3.1](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.0...v1.3.1) (2026-04-16)
+
+
+### Bug Fixes
+
+* preservar erro original do tinyerp no postdata ([6e9dfed](https://github.com/linkiez/TinyERPv2-SDK/commit/6e9dfed59cbce8037c42f91ea60506662b5f6712))
+* remover upgrade global do npm no release ([49103d1](https://github.com/linkiez/TinyERPv2-SDK/commit/49103d1ba0202a3f006a40753c68357cb1993f65))
+
 # [1.3.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.2.0...v1.3.0) (2026-01-15)
 
 
