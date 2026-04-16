@@ -30,11 +30,6 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Upgrade npm (Trusted Publishing)
-        run: |
-          npm i -g npm@^11.5.1
-          npm --version
-
       - name: Enable Corepack
         run: corepack enable
 
