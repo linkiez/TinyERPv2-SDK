@@ -33,6 +33,11 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Activate npm for Trusted Publishing
+        run: |
+          corepack prepare npm@11.5.1 --activate
+          npm --version
+
       - name: Install dependencies
         run: corepack yarn install --immutable
 
