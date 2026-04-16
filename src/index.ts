@@ -73,6 +73,78 @@ import {
 export * from './controllers';
 export * from './types';
 
+type TTinyErrorResponse = {
+  retorno?: {
+    erros?: Array<{
+      erro?: string;
+    }>;
+  };
+};
+
+/**
+ * HTTP error thrown by TinyERP SDK requests.
+ */
+export class TinyERPHttpError extends Error {
+  status: number;
+  responseBody?: unknown;
+
+  /**
+   * Creates a new TinyERP HTTP error.
+   *
+   * @param message - Error message shown to SDK consumers
+   * @param status - HTTP status returned by Tiny ERP
+   * @param responseBody - Parsed response body when available
+   */
+  constructor(message: string, status: number, responseBody?: unknown) {
+    super(message);
+    this.name = 'TinyERPHttpError';
+    this.status = status;
+    this.responseBody = responseBody;
+  }
+}
+
+/**
+ * Reads Tiny ERP error payload when the upstream request fails.
+ *
+ * @param response - Fetch response instance
+ * @returns Parsed JSON body, plain text body or undefined
+ */
+async function readErrorResponseBody(response: Response): Promise<unknown> {
+  const responseText = await response.text();
+
+  if (!responseText.trim()) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(responseText) as unknown;
+  } catch {
+    return responseText;
+  }
+}
+
+/**
+ * Extracts the most useful error message from Tiny ERP payloads.
+ *
+ * @param responseBody - Parsed upstream response body
+ * @param status - HTTP status code
+ * @returns Error message for SDK consumers
+ */
+function buildTinyErrorMessage(responseBody: unknown, status: number): string {
+  if (typeof responseBody === 'string' && responseBody.trim()) {
+    return responseBody;
+  }
+
+  const tinyError = responseBody as TTinyErrorResponse | undefined;
+  const message = tinyError?.retorno?.erros?.[0]?.erro?.trim();
+
+  if (message) {
+    return message;
+  }
+
+  return `HTTP error ${status}`;
+}
+
 /**
  * TinyERP API Integration Service
  *
@@ -101,7 +173,12 @@ export const TinyERPv2 = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}`);
+      const responseBody = await readErrorResponseBody(response);
+      throw new TinyERPHttpError(
+        buildTinyErrorMessage(responseBody, response.status),
+        response.status,
+        responseBody,
+      );
     }
 
     return (await response.json()) as T;
