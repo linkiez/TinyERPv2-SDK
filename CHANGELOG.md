@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.2...v1.3.3) (2026-04-16)
+
+
+### Bug Fixes
+
+* configurar auth npm no workflow de release ([85eefb9](https://github.com/linkiez/TinyERPv2-SDK/commit/85eefb927467ad18c8e34bcc7cf903ab28c87857))
+
 ## [1.3.2](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.1...v1.3.2) (2026-04-16)
 
 
