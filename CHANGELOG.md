@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.3...v1.3.4) (2026-04-16)
+
+
+### Bug Fixes
+
+* publicar no npm via trusted publisher oidc ([e69e82b](https://github.com/linkiez/TinyERPv2-SDK/commit/e69e82b1008072347c0a102460d127ced8150ecb))
+
 ## [1.3.3](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.2...v1.3.3) (2026-04-16)
 
 
