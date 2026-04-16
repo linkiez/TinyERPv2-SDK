@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.1...v1.3.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* ativar npm via corepack no trusted publishing ([11c4a5c](https://github.com/linkiez/TinyERPv2-SDK/commit/11c4a5c06a00918bff607678d619dba5d95412e0))
+
 ## [1.3.1](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.0...v1.3.1) (2026-04-16)
 
 
