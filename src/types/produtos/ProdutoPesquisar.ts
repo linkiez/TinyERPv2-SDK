@@ -6,10 +6,11 @@ import { TinyListResponse } from '../BaseResponse';
  */
 export interface ProdutoPesquisarRequest extends TinySearchRequest {
   pesquisa?: string;
-  tipoLista?: 'todos' | 'ativo' | 'inativo' | 'kit' | 'pai' | 'filho';
-  tags?: string; // Comma separated tags
-  categoria?: number;
-  campoOrdenacao?: 'id' | 'nome' | 'codigo';
+  idTag?: number;
+  idListaPreco?: number;
+  gtin?: string;
+  situacao?: 'A' | 'I' | 'E';
+  dataCriacao?: string;
 }
 
 /**

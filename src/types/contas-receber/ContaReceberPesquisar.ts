@@ -1,17 +1,19 @@
-import { TinySearchRequest } from '../BaseRequest';
+import { TinyPaginatedRequest } from '../BaseRequest';
 import { TinyListResponse } from '../BaseResponse';
 
 /**
  * Request to search accounts receivable
  */
-export interface ContaReceberPesquisarRequest extends TinySearchRequest {
-  dataInicial?: string; // dd/mm/YYYY
-  dataFinal?: string; // dd/mm/YYYY
-  dataInicialVencimento?: string; // dd/mm/YYYY
-  dataFinalVencimento?: string; // dd/mm/YYYY
-  situacao?: 'aberto' | 'pago' | 'todos';
-  idContato?: number;
-  categoria?: string;
+export interface ContaReceberPesquisarRequest extends TinyPaginatedRequest {
+  data_ini_emissao?: string; // dd/mm/YYYY
+  data_fim_emissao?: string; // dd/mm/YYYY
+  data_ini_vencimento?: string; // dd/mm/YYYY
+  data_fim_vencimento?: string; // dd/mm/YYYY
+  situacao?: 'aberto' | 'pago' | 'cancelada' | 'parcial';
+  nome_cliente?: string;
+  numero_doc?: string;
+  numero_banco?: string;
+  id_origem?: string;
 }
 
 /**
@@ -19,17 +21,16 @@ export interface ContaReceberPesquisarRequest extends TinySearchRequest {
  */
 export interface ContaReceberResumo {
   id: number;
-  id_contato: number;
-  nome_contato: string;
-  numero_documento: string;
+  nome_cliente: string;
   historico: string;
-  competencia: string; // dd/mm/YYYY
-  vencimento: string; // dd/mm/YYYY
+  numero_banco: string;
+  numero_doc: string;
+  serie_doc?: number;
+  data_vencimento: string; // dd/mm/YYYY
+  data_emissao: string; // dd/mm/YYYY
   valor: number;
   saldo: number;
-  situacao: 'aberto' | 'pago';
-  forma_pagamento: string;
-  categoria: string;
+  situacao: 'aberto' | 'pago' | 'cancelado' | 'parcial';
 }
 
 /**
@@ -45,8 +46,8 @@ export interface ContaReceberPesquisarResponse extends TinyListResponse<ContaRec
     }>;
     numero_paginas: number;
     pagina: number;
-    contas_receber: Array<{
-      conta_receber: ContaReceberResumo;
+    contas: Array<{
+      conta: ContaReceberResumo;
     }>;
   };
 }

@@ -7,13 +7,15 @@ import { TinyListResponse } from '../BaseResponse';
 export interface NotaFiscalPesquisarRequest extends TinySearchRequest {
   dataInicial?: string; // dd/mm/YYYY
   dataFinal?: string; // dd/mm/YYYY
-  dataEmissaoInicial?: string; // dd/mm/YYYY
-  dataEmissaoFinal?: string; // dd/mm/YYYY
+  cliente?: string;
+  cpf_cnpj?: string;
   numero?: string;
-  serie?: string;
-  idContato?: number;
   situacao?: string;
   tipoNota?: 'E' | 'S'; // E=Entrada, S=Saída
+  numeroEcommerce?: string;
+  idVendedor?: number;
+  idFormaEnvio?: number;
+  nomeVendedor?: string;
 }
 
 /**
@@ -26,13 +28,35 @@ export interface NotaFiscalResumo {
   data_emissao: string;
   data_saida: string;
   situacao: string;
-  tipo_nota: 'E' | 'S';
-  id_contato: number;
-  nome_contato: string;
-  valor: number;
+  tipo?: 'E' | 'S';
+  tipo_nota?: 'E' | 'S';
+  nome?: string;
+  cliente?: {
+    nome: string;
+    tipo_pessoa?: string;
+    cpf_cnpj?: string;
+    ie?: string;
+    endereco?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    cep?: string;
+    cidade?: string;
+    uf?: string;
+    fone?: string;
+    email?: string;
+  };
+  valor?: number;
   chave_acesso: string;
-  numero_pedido: number;
-  id_pedido: number;
+  numero_pedido?: number;
+  id_pedido?: number;
+  numero_ecommerce?: string;
+  id_vendedor?: number;
+  nome_vendedor?: string;
+  descricao_situacao?: string;
+  id_forma_envio?: string;
+  codigo_rastreamento?: string;
+  url_rastreamento?: string;
 }
 
 /**

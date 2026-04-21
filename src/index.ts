@@ -145,6 +145,63 @@ function buildTinyErrorMessage(responseBody: unknown, status: number): string {
   return `HTTP error ${status}`;
 }
 
+function resolveTinyRequestString(
+  ...values: unknown[]
+): string | undefined {
+  for (const value of values) {
+    if (typeof value !== 'string') {
+      continue;
+    }
+
+    const normalized = value.trim();
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeTinyFinancialSearchDate(
+  value: string | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(normalized)) {
+    return normalized;
+  }
+
+  const isoDate = normalized.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDate) {
+    return `${isoDate[3]}/${isoDate[2]}/${isoDate[1]}`;
+  }
+
+  return normalized;
+}
+
+function appendTinyOptionalParam(
+  params: URLSearchParams,
+  key: string,
+  value: string | undefined,
+): void {
+  if (value) {
+    params.append(key, value);
+  }
+}
+
+function appendTinyOptionalNumber(
+  params: URLSearchParams,
+  key: string,
+  value: number | undefined,
+): void {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    params.append(key, String(value));
+  }
+}
+
 /**
  * TinyERP API Integration Service
  *
@@ -303,7 +360,28 @@ export const TinyERPv2 = {
     token: string,
   ): Promise<ProdutoPesquisarResponse> {
     const params = new URLSearchParams();
-    if (request.pesquisa) params.append('pesquisa', request.pesquisa);
+    appendTinyOptionalParam(
+      params,
+      'pesquisa',
+      resolveTinyRequestString(request.pesquisa),
+    );
+    appendTinyOptionalNumber(params, 'idTag', request.idTag);
+    appendTinyOptionalNumber(params, 'idListaPreco', request.idListaPreco);
+    appendTinyOptionalParam(
+      params,
+      'gtin',
+      resolveTinyRequestString(request.gtin),
+    );
+    appendTinyOptionalParam(
+      params,
+      'situacao',
+      resolveTinyRequestString(request.situacao),
+    );
+    appendTinyOptionalParam(
+      params,
+      'dataCriacao',
+      resolveTinyRequestString(request.dataCriacao),
+    );
     if (request.pagina) params.append('pagina', request.pagina.toString());
 
     return this.postData<ProdutoPesquisarResponse>(
@@ -749,9 +827,53 @@ export const TinyERPv2 = {
     token: string,
   ): Promise<NotaFiscalPesquisarResponse> {
     const params = new URLSearchParams();
-    if (request.dataInicial) params.append('dataInicial', request.dataInicial);
-    if (request.dataFinal) params.append('dataFinal', request.dataFinal);
-    if (request.situacao) params.append('situacao', request.situacao);
+    appendTinyOptionalParam(
+      params,
+      'dataInicial',
+      normalizeTinyFinancialSearchDate(resolveTinyRequestString(request.dataInicial)),
+    );
+    appendTinyOptionalParam(
+      params,
+      'dataFinal',
+      normalizeTinyFinancialSearchDate(resolveTinyRequestString(request.dataFinal)),
+    );
+    appendTinyOptionalParam(
+      params,
+      'tipoNota',
+      resolveTinyRequestString(request.tipoNota),
+    );
+    appendTinyOptionalParam(
+      params,
+      'numero',
+      resolveTinyRequestString(request.numero),
+    );
+    appendTinyOptionalParam(
+      params,
+      'cliente',
+      resolveTinyRequestString(request.cliente),
+    );
+    appendTinyOptionalParam(
+      params,
+      'cpf_cnpj',
+      resolveTinyRequestString(request.cpf_cnpj),
+    );
+    appendTinyOptionalParam(
+      params,
+      'situacao',
+      resolveTinyRequestString(request.situacao),
+    );
+    appendTinyOptionalParam(
+      params,
+      'numeroEcommerce',
+      resolveTinyRequestString(request.numeroEcommerce),
+    );
+    appendTinyOptionalNumber(params, 'idVendedor', request.idVendedor);
+    appendTinyOptionalNumber(params, 'idFormaEnvio', request.idFormaEnvio);
+    appendTinyOptionalParam(
+      params,
+      'nomeVendedor',
+      resolveTinyRequestString(request.nomeVendedor),
+    );
     if (request.pagina) params.append('pagina', request.pagina.toString());
 
     return this.postData<NotaFiscalPesquisarResponse>(
@@ -851,10 +973,61 @@ export const TinyERPv2 = {
     token: string,
   ): Promise<ContaReceberPesquisarResponse> {
     const params = new URLSearchParams();
-    if (request.dataInicial) params.append('dataInicial', request.dataInicial);
-    if (request.dataFinal) params.append('dataFinal', request.dataFinal);
-    if (request.situacao) params.append('situacao', request.situacao);
-    if (request.pagina) params.append('pagina', request.pagina.toString());
+    appendTinyOptionalParam(
+      params,
+      'data_ini_emissao',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_ini_emissao),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'data_fim_emissao',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_fim_emissao),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'data_ini_vencimento',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_ini_vencimento),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'data_fim_vencimento',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_fim_vencimento),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'nome_cliente',
+      resolveTinyRequestString(request.nome_cliente),
+    );
+    appendTinyOptionalParam(
+      params,
+      'numero_doc',
+      resolveTinyRequestString(request.numero_doc),
+    );
+    appendTinyOptionalParam(
+      params,
+      'numero_banco',
+      resolveTinyRequestString(request.numero_banco),
+    );
+    appendTinyOptionalParam(
+      params,
+      'id_origem',
+      resolveTinyRequestString(request.id_origem),
+    );
+    if (request.situacao) {
+      params.append('situacao', request.situacao);
+    }
+
+    if (request.pagina) {
+      params.append('pagina', request.pagina.toString());
+    }
 
     return this.postData<ContaReceberPesquisarResponse>(
       `https://api.tiny.com.br/api2/contas.receber.pesquisa.php?token=${token}&formato=JSON`,
@@ -898,10 +1071,51 @@ export const TinyERPv2 = {
     token: string,
   ): Promise<ContaPagarPesquisarResponse> {
     const params = new URLSearchParams();
-    if (request.dataInicial) params.append('dataInicial', request.dataInicial);
-    if (request.dataFinal) params.append('dataFinal', request.dataFinal);
-    if (request.situacao) params.append('situacao', request.situacao);
-    if (request.pagina) params.append('pagina', request.pagina.toString());
+    appendTinyOptionalParam(
+      params,
+      'data_ini_emissao',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_ini_emissao),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'data_fim_emissao',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_fim_emissao),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'data_ini_vencimento',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_ini_vencimento),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'data_fim_vencimento',
+      normalizeTinyFinancialSearchDate(
+        resolveTinyRequestString(request.data_fim_vencimento),
+      ),
+    );
+    appendTinyOptionalParam(
+      params,
+      'nome_cliente',
+      resolveTinyRequestString(request.nome_cliente),
+    );
+    appendTinyOptionalParam(
+      params,
+      'numero_doc',
+      resolveTinyRequestString(request.numero_doc),
+    );
+    if (request.situacao) {
+      params.append('situacao', request.situacao);
+    }
+
+    if (request.pagina) {
+      params.append('pagina', request.pagina.toString());
+    }
 
     return this.postData<ContaPagarPesquisarResponse>(
       `https://api.tiny.com.br/api2/contas.pagar.pesquisa.php?token=${token}&formato=JSON`,
