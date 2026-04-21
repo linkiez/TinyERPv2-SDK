@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.4...v2.0.0) (2026-04-21)
+
+
+* fix!: alinhar propriedades do sdk a doc do tiny ([cd34763](https://github.com/linkiez/TinyERPv2-SDK/commit/cd3476331e87ec369a619dbefdd7eee1ceb5c3a2))
+
+
+### BREAKING CHANGES
+
+* os contratos publicos de pesquisa foram ajustados para usar apenas os nomes oficiais documentados pela API do Tiny, incluindo contas financeiras, produtos e notas fiscais.
+
 ## [1.3.4](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.3...v1.3.4) (2026-04-16)
 
 
