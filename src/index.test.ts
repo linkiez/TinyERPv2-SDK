@@ -253,21 +253,36 @@ describe('TinyERPv2', () => {
       jest.useRealTimers();
     });
 
-    it('registra o timestamp da requisição na janela deslizante', async () => {
+    it('registra o timestamp no bucket do token extraído da URL', async () => {
       globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
         mockJsonResponse({}),
       );
 
       const before = Date.now();
-      await TinyERPv2.postData('https://api.tiny.com.br/test');
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-A&formato=JSON');
       const after = Date.now();
 
-      expect(TinyERPv2._requestTimestamps).toHaveLength(1);
-      expect(TinyERPv2._requestTimestamps[0]).toBeGreaterThanOrEqual(before);
-      expect(TinyERPv2._requestTimestamps[0]).toBeLessThanOrEqual(after);
+      const bucket = TinyERPv2._tokenBuckets.get('tok-A');
+      expect(bucket).toBeDefined();
+      expect(bucket?.requestTimestamps).toHaveLength(1);
+      expect(bucket?.requestTimestamps[0]).toBeGreaterThanOrEqual(before);
+      expect(bucket?.requestTimestamps[0]).toBeLessThanOrEqual(after);
     });
 
-    it('atualiza _rateLimitPerMinute a partir do header x-limit-api', async () => {
+    it('mantém buckets independentes para tokens distintos', async () => {
+      globalThis.fetch = jest.fn<typeof fetch>()
+        .mockResolvedValueOnce(mockJsonResponse({}))
+        .mockResolvedValueOnce(mockJsonResponse({}));
+
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-A');
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-B');
+
+      expect(TinyERPv2._tokenBuckets.get('tok-A')?.requestTimestamps).toHaveLength(1);
+      expect(TinyERPv2._tokenBuckets.get('tok-B')?.requestTimestamps).toHaveLength(1);
+      expect(TinyERPv2._tokenBuckets.size).toBe(2);
+    });
+
+    it('atualiza rateLimitPerMinute do bucket via header x-limit-api', async () => {
       globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
         new Response(JSON.stringify({}), {
           status: 200,
@@ -278,56 +293,108 @@ describe('TinyERPv2', () => {
         }),
       );
 
-      await TinyERPv2.postData('https://api.tiny.com.br/test');
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-A');
 
-      expect(TinyERPv2._rateLimitPerMinute).toBe(60);
+      expect(TinyERPv2._tokenBuckets.get('tok-A')?.rateLimitPerMinute).toBe(60);
+    });
+
+    it('header x-limit-api de um token não afeta outro token', async () => {
+      globalThis.fetch = jest.fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json', 'x-limit-api': '120' },
+          }),
+        )
+        .mockResolvedValueOnce(mockJsonResponse({}));
+
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-A');
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-B');
+
+      expect(TinyERPv2._tokenBuckets.get('tok-A')?.rateLimitPerMinute).toBe(120);
+      expect(TinyERPv2._tokenBuckets.get('tok-B')?.rateLimitPerMinute).toBe(30);
     });
 
     it('ignora header x-limit-api inválido', async () => {
       globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
         new Response(JSON.stringify({}), {
           status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'x-limit-api': 'invalid',
-          },
+          headers: { 'Content-Type': 'application/json', 'x-limit-api': 'invalid' },
         }),
+      );
+
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-A');
+
+      expect(TinyERPv2._tokenBuckets.get('tok-A')?.rateLimitPerMinute).toBe(30);
+    });
+
+    it('usa bucket global quando a URL não contém token', async () => {
+      globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
+        mockJsonResponse({}),
       );
 
       await TinyERPv2.postData('https://api.tiny.com.br/test');
 
-      expect(TinyERPv2._rateLimitPerMinute).toBe(30);
+      expect(TinyERPv2._tokenBuckets.has('__global__')).toBe(true);
     });
 
-    it('aguarda antes de enviar quando o limite por minuto é atingido', async () => {
+    it('aguarda antes de enviar quando o limite do token é atingido', async () => {
       jest.useFakeTimers();
 
-      TinyERPv2._rateLimitPerMinute = 1;
-      // Timestamp de 50s atrás — ainda dentro da janela de 60s
-      TinyERPv2._requestTimestamps = [Date.now() - 50_000];
+      TinyERPv2._tokenBuckets.set('tok-A', {
+        rateLimitPerMinute: 1,
+        requestTimestamps: [Date.now() - 50_000],
+      });
 
       const fetchMock = jest.fn<typeof fetch>().mockResolvedValue(
         mockJsonResponse({}),
       );
       globalThis.fetch = fetchMock;
 
-      const promise = TinyERPv2.postData('https://api.tiny.com.br/test');
+      const promise = TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-A');
 
-      // Avança o tempo além do tempo de espera (~10010ms restantes na janela + buffer)
       await jest.advanceTimersByTimeAsync(15_000);
       await promise;
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('resetRateLimit restaura estado inicial', () => {
-      TinyERPv2._rateLimitPerMinute = 120;
-      TinyERPv2._requestTimestamps = [Date.now()];
+    it('token diferente não é bloqueado pelo limite de outro token', async () => {
+      jest.useFakeTimers();
+
+      TinyERPv2._tokenBuckets.set('tok-A', {
+        rateLimitPerMinute: 1,
+        requestTimestamps: [Date.now() - 50_000],
+      });
+
+      const fetchMock = jest.fn<typeof fetch>().mockResolvedValue(
+        mockJsonResponse({}),
+      );
+      globalThis.fetch = fetchMock;
+
+      // tok-B não tem bucket — não deve aguardar
+      await TinyERPv2.postData('https://api.tiny.com.br/test?token=tok-B');
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('resetRateLimit limpa todos os buckets', () => {
+      TinyERPv2._tokenBuckets.set('tok-A', { rateLimitPerMinute: 120, requestTimestamps: [Date.now()] });
+      TinyERPv2._tokenBuckets.set('tok-B', { rateLimitPerMinute: 60, requestTimestamps: [Date.now()] });
 
       TinyERPv2.resetRateLimit();
 
-      expect(TinyERPv2._rateLimitPerMinute).toBe(30);
-      expect(TinyERPv2._requestTimestamps).toHaveLength(0);
+      expect(TinyERPv2._tokenBuckets.size).toBe(0);
+    });
+
+    it('resetRateLimit com token limpa apenas o bucket daquele token', () => {
+      TinyERPv2._tokenBuckets.set('tok-A', { rateLimitPerMinute: 120, requestTimestamps: [Date.now()] });
+      TinyERPv2._tokenBuckets.set('tok-B', { rateLimitPerMinute: 60, requestTimestamps: [Date.now()] });
+
+      TinyERPv2.resetRateLimit('tok-A');
+
+      expect(TinyERPv2._tokenBuckets.has('tok-A')).toBe(false);
+      expect(TinyERPv2._tokenBuckets.has('tok-B')).toBe(true);
     });
   });
 });

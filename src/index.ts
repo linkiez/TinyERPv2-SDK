@@ -202,6 +202,15 @@ function appendTinyOptionalNumber(
   }
 }
 
+/** @internal */
+type TTokenBucket = {
+  rateLimitPerMinute: number;
+  requestTimestamps: number[];
+};
+
+/** Chave usada quando a URL não contém o parâmetro `token`. */
+const GLOBAL_BUCKET_KEY = '__global__';
+
 /**
  * TinyERP API Integration Service
  *
@@ -210,49 +219,63 @@ function appendTinyOptionalNumber(
  */
 export const TinyERPv2 = {
   /**
-   * Number of requests allowed per minute.
-   * Updated automatically from the `x-limit-api` response header.
-   * Default: 30 (plano Crescer).
-   */
-  _rateLimitPerMinute: 30,
-
-  /**
-   * Timestamps (ms) of requests within the current sliding window of 60s.
+   * Buckets de rate limit indexados pelo token da requisição.
+   * Cada token possui seu próprio contador independente.
+   * Use `GLOBAL_BUCKET_KEY` (`'__global__'`) para URLs sem token.
    * @internal
    */
-  _requestTimestamps: [] as number[],
+  _tokenBuckets: new Map<string, TTokenBucket>(),
 
   /**
-   * Resets rate limit state to defaults.
-   * Intended for use in tests or when changing accounts/tokens.
+   * Retorna (ou cria) o bucket para o token informado.
+   * @internal
    */
-  resetRateLimit: function (): void {
-    this._requestTimestamps = [];
-    this._rateLimitPerMinute = 30;
+  _getOrCreateBucket: function (tokenKey: string): TTokenBucket {
+    let bucket = this._tokenBuckets.get(tokenKey);
+    if (!bucket) {
+      bucket = { rateLimitPerMinute: 30, requestTimestamps: [] };
+      this._tokenBuckets.set(tokenKey, bucket);
+    }
+    return bucket;
   },
 
   /**
-   * Waits if the rate limit would be exceeded before proceeding.
+   * Resets rate limit state.
+   * - Without argument: clears all token buckets.
+   * - With token: clears only that token's bucket.
+   */
+  resetRateLimit: function (token?: string): void {
+    if (token === undefined) {
+      this._tokenBuckets.clear();
+    } else {
+      this._tokenBuckets.delete(token);
+    }
+  },
+
+  /**
+   * Waits if the rate limit for the given token would be exceeded.
    * Uses a sliding window of 60 seconds.
    *
+   * @param tokenKey - Token key identifying the bucket
    * @internal
    */
-  _waitForRateLimit: async function (): Promise<void> {
+  _waitForRateLimit: async function (tokenKey: string): Promise<void> {
     const windowMs = 60_000;
     const now = Date.now();
+    const bucket = this._getOrCreateBucket(tokenKey);
 
-    this._requestTimestamps = this._requestTimestamps.filter(
+    bucket.requestTimestamps = bucket.requestTimestamps.filter(
       (ts) => now - ts < windowMs,
     );
 
-    if (this._requestTimestamps.length >= this._rateLimitPerMinute) {
-      const oldest = this._requestTimestamps[0];
+    if (bucket.requestTimestamps.length >= bucket.rateLimitPerMinute) {
+      const oldest = bucket.requestTimestamps[0];
       const waitMs = windowMs - (now - oldest) + 10;
       await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
-      return this._waitForRateLimit();
+      return this._waitForRateLimit(tokenKey);
     }
 
-    this._requestTimestamps.push(Date.now());
+    bucket.requestTimestamps.push(Date.now());
   },
 
   /**
@@ -263,7 +286,11 @@ export const TinyERPv2 = {
    * @returns Promise with API response
    */
   postData: async function <T = unknown>(url = '', dados?: string): Promise<T> {
-    await this._waitForRateLimit();
+    const tokenKey =
+      new URL(url, 'https://api.tiny.com.br').searchParams.get('token') ??
+      GLOBAL_BUCKET_KEY;
+
+    await this._waitForRateLimit(tokenKey);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -281,7 +308,7 @@ export const TinyERPv2 = {
     if (rateLimitHeader !== null) {
       const parsed = Number.parseInt(rateLimitHeader, 10);
       if (!Number.isNaN(parsed) && parsed > 0) {
-        this._rateLimitPerMinute = parsed;
+        this._getOrCreateBucket(tokenKey).rateLimitPerMinute = parsed;
       }
     }
 
