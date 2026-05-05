@@ -242,4 +242,92 @@ describe('TinyERPv2', () => {
     expect(params.get('nomeVendedor')).toBe('Operador Tiny');
     expect(params.get('pagina')).toBe('2');
   });
+
+  describe('rate limiting', () => {
+    beforeEach(() => {
+      TinyERPv2.resetRateLimit();
+    });
+
+    afterEach(() => {
+      TinyERPv2.resetRateLimit();
+      jest.useRealTimers();
+    });
+
+    it('registra o timestamp da requisição na janela deslizante', async () => {
+      globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
+        mockJsonResponse({}),
+      );
+
+      const before = Date.now();
+      await TinyERPv2.postData('https://api.tiny.com.br/test');
+      const after = Date.now();
+
+      expect(TinyERPv2._requestTimestamps).toHaveLength(1);
+      expect(TinyERPv2._requestTimestamps[0]).toBeGreaterThanOrEqual(before);
+      expect(TinyERPv2._requestTimestamps[0]).toBeLessThanOrEqual(after);
+    });
+
+    it('atualiza _rateLimitPerMinute a partir do header x-limit-api', async () => {
+      globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-limit-api': '60',
+          },
+        }),
+      );
+
+      await TinyERPv2.postData('https://api.tiny.com.br/test');
+
+      expect(TinyERPv2._rateLimitPerMinute).toBe(60);
+    });
+
+    it('ignora header x-limit-api inválido', async () => {
+      globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-limit-api': 'invalid',
+          },
+        }),
+      );
+
+      await TinyERPv2.postData('https://api.tiny.com.br/test');
+
+      expect(TinyERPv2._rateLimitPerMinute).toBe(30);
+    });
+
+    it('aguarda antes de enviar quando o limite por minuto é atingido', async () => {
+      jest.useFakeTimers();
+
+      TinyERPv2._rateLimitPerMinute = 1;
+      // Timestamp de 50s atrás — ainda dentro da janela de 60s
+      TinyERPv2._requestTimestamps = [Date.now() - 50_000];
+
+      const fetchMock = jest.fn<typeof fetch>().mockResolvedValue(
+        mockJsonResponse({}),
+      );
+      globalThis.fetch = fetchMock;
+
+      const promise = TinyERPv2.postData('https://api.tiny.com.br/test');
+
+      // Avança o tempo além do tempo de espera (~10010ms restantes na janela + buffer)
+      await jest.advanceTimersByTimeAsync(15_000);
+      await promise;
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('resetRateLimit restaura estado inicial', () => {
+      TinyERPv2._rateLimitPerMinute = 120;
+      TinyERPv2._requestTimestamps = [Date.now()];
+
+      TinyERPv2.resetRateLimit();
+
+      expect(TinyERPv2._rateLimitPerMinute).toBe(30);
+      expect(TinyERPv2._requestTimestamps).toHaveLength(0);
+    });
+  });
 });

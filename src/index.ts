@@ -210,6 +210,52 @@ function appendTinyOptionalNumber(
  */
 export const TinyERPv2 = {
   /**
+   * Number of requests allowed per minute.
+   * Updated automatically from the `x-limit-api` response header.
+   * Default: 30 (plano Crescer).
+   */
+  _rateLimitPerMinute: 30,
+
+  /**
+   * Timestamps (ms) of requests within the current sliding window of 60s.
+   * @internal
+   */
+  _requestTimestamps: [] as number[],
+
+  /**
+   * Resets rate limit state to defaults.
+   * Intended for use in tests or when changing accounts/tokens.
+   */
+  resetRateLimit: function (): void {
+    this._requestTimestamps = [];
+    this._rateLimitPerMinute = 30;
+  },
+
+  /**
+   * Waits if the rate limit would be exceeded before proceeding.
+   * Uses a sliding window of 60 seconds.
+   *
+   * @internal
+   */
+  _waitForRateLimit: async function (): Promise<void> {
+    const windowMs = 60_000;
+    const now = Date.now();
+
+    this._requestTimestamps = this._requestTimestamps.filter(
+      (ts) => now - ts < windowMs,
+    );
+
+    if (this._requestTimestamps.length >= this._rateLimitPerMinute) {
+      const oldest = this._requestTimestamps[0];
+      const waitMs = windowMs - (now - oldest) + 10;
+      await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+      return this._waitForRateLimit();
+    }
+
+    this._requestTimestamps.push(Date.now());
+  },
+
+  /**
    * Base method for making POST requests to Tiny ERP API
    *
    * @param url - Full API endpoint URL
@@ -217,6 +263,8 @@ export const TinyERPv2 = {
    * @returns Promise with API response
    */
   postData: async function <T = unknown>(url = '', dados?: string): Promise<T> {
+    await this._waitForRateLimit();
+
     const response = await fetch(url, {
       method: 'POST',
       mode: 'same-origin',
@@ -228,6 +276,14 @@ export const TinyERPv2 = {
       referrerPolicy: 'no-referrer',
       body: dados,
     });
+
+    const rateLimitHeader = response.headers.get('x-limit-api');
+    if (rateLimitHeader !== null) {
+      const parsed = Number.parseInt(rateLimitHeader, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        this._rateLimitPerMinute = parsed;
+      }
+    }
 
     if (!response.ok) {
       const responseBody = await readErrorResponseBody(response);
