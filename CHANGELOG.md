@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v2.0.0...v2.1.0) (2026-05-05)
+
+
+### Features
+
+* adicionar rate limiting global com janela deslizante de 60s ([e79787e](https://github.com/linkiez/TinyERPv2-SDK/commit/e79787eb84f534c036c5d5d128c85b6f48a9c06e))
+
 # [2.0.0](https://github.com/linkiez/TinyERPv2-SDK/compare/v1.3.4...v2.0.0) (2026-04-21)
 
 
