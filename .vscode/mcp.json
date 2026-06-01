@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "context-mode": {
+      "command": "/home/linkiez/.nvs/default/bin/context-mode",
+      "env": {
+        "CONTEXT_MODE_DIR": "/home/linkiez/.vscode-server/data/User/globalStorage/context-mode-vscode-copilot"
+      }
+    }
+  }
+}
